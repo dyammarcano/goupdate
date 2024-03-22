@@ -1,0 +1,38 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: CI Build + Unit Test
+
+on: ["push", "pull_request"]
+
+jobs:
+
+  ci:
+    name: "Run CI"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["windows-latest", "ubuntu-latest"]
+     
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: stable
+
+    - name: Run vet tool
+      run: go vet ./...
+      
+    - id: govulncheck
+      uses: golang/govulncheck-action@v1
+    
+    - uses: dominikh/staticcheck-action@v1.2.0
+      with:
+        version: "2022.1.1"
+        install-go: false
+        
+    - name: Test
+      run: go test -v -race -p=1 ./...
